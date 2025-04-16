@@ -1,39 +1,72 @@
-name: Solar System Workflow
+# name: Solar System Workflow
+
+# on:
+#   workflow_dispatch: null
+#   push:
+#     branches:
+#       - main
+#       - feature/*
+
+# env:
+#   MONGO_URI: mongodb+srv://supercluster.d83jj.mongodb.net/superData
+#   MONGO_USERNAME: superuser
+#   MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+
+# jobs:
+#   unit-testing:
+#     name: Unit Testing
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
+
+#       - name: Setup NodeJS Version
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
+
+#       - name: Install Dependencies
+#         run: npm install
+
+#       - name: Unit Testing
+#         run: npm test
+
+#       - name: Archive Test Result
+#         if: always()  # This ensures the step runs even if previous steps fail
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: Mocha-Test-Result
+#           path: test-results.xml
+
+name: Solar System CI
 
 on:
-  workflow_dispatch: null
   push:
     branches:
       - main
-      - feature/*
-
-env:
-  MONGO_URI: mongodb+srv://supercluster.d83jj.mongodb.net/superData
-  MONGO_USERNAME: superuser
-  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+  pull_request:
+    branches:
+      - main
 
 jobs:
   unit-testing:
-    name: Unit Testing
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
-      - name: Setup NodeJS Version
-        uses: actions/setup-node@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
         with:
-          node-version: 20
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Dependencies
         run: npm install
 
-      - name: Unit Testing
+      - name: Run Tests
         run: npm test
-
-      - name: Archive Test Result
-        if: always()  # This ensures the step runs even if previous steps fail
-        uses: actions/upload-artifact@v4
-        with:
-          name: Mocha-Test-Result
-          path: test-results.xml
